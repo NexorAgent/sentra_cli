@@ -1,0 +1,32 @@
+name: Publish to PyPI (on tag)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write        # nécessaire pour OIDC
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+          python -m build
+
+      # Publie sur PyPI (pour TestPyPI, dé-commente repository-url)
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.12.4
+        with:
+          # repository-url: https://test.pypi.org/legacy/
+          print-hash: true

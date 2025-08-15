@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=75", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,11 +8,11 @@ version = "0.1.1"
 description = "Sentra CLI - automation helpers for SENTRA_CORE_MEM"
 readme = "README.md"
 requires-python = ">=3.12"
+license = { file = "LICENSE" }
 authors = [{ name = "Julien" }]
-dependencies = ["click>=8.1"]
-
-[project.scripts]
-sentra = "sentra_cli.cli:main"
+dependencies = [
+  "click>=8.1"
+]
 
 [project.optional-dependencies]
 dev = [
@@ -24,6 +24,15 @@ dev = [
   "twine"
 ]
 
+[project.scripts]
+sentra = "sentra_cli.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.black]
 line-length = 100
 target-version = ["py312"]
@@ -33,6 +42,3 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E","F","I","B","UP"]
-
-[tool.setuptools.packages.find]
-where = ["src"]

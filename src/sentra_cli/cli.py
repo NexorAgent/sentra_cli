@@ -1,4 +1,4 @@
-﻿import os
+import os
 import shutil
 import subprocess
 import sys
@@ -10,158 +10,143 @@ import click
 
 
 def project_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+    """
+    Détecte la racine du projet:
+    - le dossier courant s'il contient un marqueur (pyproject.toml, .git, requirements.txt)
+    - sinon, remonte dans les parents
+    - sinon, fallback: cwd
+    """
+    p = Path.cwd()
+    markers = ("pyproject.toml", ".git", "requirements.txt")
+    for parent in (p, *p.parents):
+        if any((parent / m).exists() for m in markers):
+            return parent
+    return p
 
 
-def ensure_dir(p: Path):
-    p.mkdir(parents=True, exist_ok=True)
+def _models_dir() -> Path:
+    d = project_root() / "models"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _download_url_to_path(url: str, dest: Path) -> None:
+    parsed = urlparse(url)
+    scheme = (parsed.scheme or "").lower()
+
+    if scheme in ("http", "https"):
+        with urllib.request.urlopen(url) as r, open(dest, "wb") as f:
+            shutil.copyfileobj(r, f)
+        return
+
+    if scheme == "file":
+        # Cas 1 (Windows «non canonique»): file://C:\path\to\file.txt
+        #   -> urlparse.netloc contient "C:\path\to\file.txt", path est vide.
+        # Cas 2 (canonique):                file:///C:/path/to/file.txt
+        #   -> urlparse.path contient "/C:/path/to/file.txt"
+        src_path = ""
+        if os.name == "nt" and parsed.netloc and parsed.path in ("", "/"):
+            src_path = unquote(parsed.netloc)  # ex: C:\Users\...\dummy.txt
+        else:
+            src_path = unquote(parsed.path)  # ex: /C:/Users/...  (à normaliser)
+            if (
+                os.name == "nt"
+                and src_path.startswith("/")
+                and len(src_path) > 3
+                and src_path[2] == ":"
+            ):
+                src_path = src_path.lstrip("/")
+
+        src = Path(src_path)
+        if not src.exists():
+            raise FileNotFoundError(src)
+        shutil.copyfile(src, dest)
+        return
+
+    raise click.ClickException(f"Unsupported URL scheme: {scheme or '(none)'}")
 
 
 @click.group()
 def main():
     """Sentra CLI - automation helpers for SENTRA_CORE_MEM"""
-    pass
 
 
 @main.command()
-def status():
-    """Show status"""
-    click.echo("Status: OK - implement checks")
-
-
-@main.command()
-@click.option("--force", is_flag=True, help="Force recreate directories")
-def init(force: bool):
-    """
-    Scaffold a basic project structure:
-      - data/, models/, notebooks/, logs/
-    """
+def init():
+    """Scaffold a basic project structure: - data/, models/, notebooks/, logs/"""
     root = project_root()
-    dirs = ["data", "models", "notebooks", "logs"]
     created = []
-    for d in dirs:
-        p = root / d
-        if p.exists() and force:
-            if p.is_dir():
-                shutil.rmtree(p)
+    for name in ("data", "models", "notebooks", "logs"):
+        p = root / name
         if not p.exists():
-            ensure_dir(p)
-            (p / ".gitkeep").write_text("", encoding="utf-8")
-            created.append(str(p.relative_to(root)))
-    if created:
-        click.echo("Created directories: " + ", ".join(created))
-    else:
-        click.echo("No directories created (already present).")
-
-
-def _file_path_from_url(url: str) -> Path:
-    """
-    Robustly convert file:// URLs to local Path on both Windows and POSIX.
-    Accepts forms like:
-      file:///C:/path/to/file.txt
-      file:///C:/path/to/file.txt
-      file://localhost/C:/path/to/file.txt
-      file:///some/unix/path
-    Returns a pathlib.Path or None if the URL scheme is not file.
-    """
-    up = urlparse(url)
-    if up.scheme != "file":
-        return None
-
-    # Build raw path from netloc and path parts.
-    # Examples:
-    #  - urlparse('file:///C:/a/b') => netloc='', path='/C:/a/b'
-    #  - urlparse('file://C:/a/b')  => netloc='C:', path='/a/b'  (on some forms)
-    #  - urlparse('file:///unix/path') => netloc='', path='/unix/path'
-    if up.netloc and up.path:
-        raw = up.netloc + up.path
-    elif up.netloc:
-        raw = up.netloc
-    else:
-        raw = up.path
-
-    raw = unquote(raw)
-
-    # Normalize for Windows: remove a leading slash if it produces '/C:...' -> 'C:...'
-    if os.name == "nt":
-        # Remove leading slashes (one or more) which can appear before "C:".
-        raw = raw.lstrip("/")
-        # Convert forward slashes to backslashes for consistency
-        raw = raw.replace("/", os.sep)
-    else:
-        # POSIX: raw is fine (starts with '/')
-        pass
-
-    return Path(raw)
-
-
-def _download_url_to_path(url: str, dest: Path):
-    dest_parent = dest.parent
-    ensure_dir(dest_parent)
-    parsed = urlparse(url)
-    if parsed.scheme == "file":
-        src_path = _file_path_from_url(url)
-        if not src_path or not src_path.exists():
-            raise FileNotFoundError(f"Source file not found: {src_path}")
-        shutil.copyfile(src_path, dest)
-    else:
-        # HTTP(S) download
-        with urllib.request.urlopen(url) as resp:
-            status = getattr(resp, "status", None)
-            if status is not None and status != 200:
-                raise RuntimeError(f"Download failed (status {status})")
-            with open(dest, "wb") as out:
-                out.write(resp.read())
+            p.mkdir(parents=True, exist_ok=True)
+            created.append(name)
+        # Assure la présence d'un marqueur pour VCS
+        (p / ".gitkeep").touch(exist_ok=True)
+    click.echo(f"Created directories: {', '.join(created) if created else 'nothing to do'}")
 
 
 @main.group()
 def model():
     """Model related commands"""
-    pass
 
 
 @model.command("fetch")
 @click.argument("name")
-@click.option("--url", required=False, help="URL to download the model (http(s) or file://).")
+@click.option("--url", required=True, help="Source URL (http(s):// ou file://)")
 def model_fetch(name: str, url: str):
-    root = project_root()
-    models_dir = root / "models"
-    ensure_dir(models_dir)
-
-    mapping = {"example-small": "https://example.com/some-model-file.bin"}
-
-    if not url:
-        if name in mapping:
-            url = mapping[name]
-            click.echo(f"Using mapped URL for {name}: {url}")
-        else:
-            raise click.UsageError("No URL provided and no mapping found for model: " + name)
-
-    # choose extension: if file URL, use source suffix; else parse from URL path
+    """Fetch a model and store it under <project>/models."""
+    dest_dir = _models_dir()
     parsed = urlparse(url)
-    if parsed.scheme == "file":
-        src_path = _file_path_from_url(url)
-        ext = src_path.suffix if src_path is not None else ".bin"
-    else:
-        ext = Path(parsed.path).suffix or ".bin"
-
-    dest = models_dir / f"{name}{ext}"
+    filename = Path(unquote(parsed.path or parsed.netloc)).name or f"{name}.bin"
+    dest = dest_dir / filename
 
     click.echo(f"Downloading {url} -> {dest}")
     try:
         _download_url_to_path(url, dest)
-    except Exception as e:
-        raise click.ClickException(f"Failed to fetch model: {e}") from e
+    except Exception as err:  # noqa: BLE001
+        raise click.ClickException(f"Failed to fetch model: {err}") from err
 
     click.echo(f"Model saved to: {dest}")
 
 
 @main.command()
-def test():
+def status():
+    """Show status"""
+    root = project_root()
+    click.echo(f"Project root: {root}")
+    for d in ("data", "models", "notebooks", "logs"):
+        click.echo(f"- {d}/ {'OK' if (root / d).exists() else 'MISSING'}")
+
+
+@main.command()
+@click.option(
+    "--use-local", is_flag=True, help="Run pytest with 'python -m pytest' from current shell."
+)
+def test(use_local: bool):
     """Run tests"""
     env = os.environ.copy()
-    env["PYTHONPATH"] = env.get("PYTHONPATH", "") + os.pathsep + "src"
-    subprocess.check_call([sys.executable, "-m", "pytest", "-q"], env=env)
+    cmd = ["python", "-m", "pytest", "-q"] if use_local else [sys.executable, "-m", "pytest", "-q"]
+
+    proc = subprocess.run(cmd, env=env, capture_output=True, text=True)
+    if proc.returncode == 0:
+        # Affiche tout de même la sortie résumé de pytest si utile
+        if proc.stdout:
+            click.echo(proc.stdout.rstrip())
+        return
+
+    output = (proc.stdout or "") + (proc.stderr or "")
+    if "No module named pytest" in output:
+        raise click.ClickException(
+            "pytest n'est pas installé dans l'environnement courant.\n"
+            "- pipx inject sentra-cli pytest   (si installé via pipx)\n"
+            "- OU activez votre venv de projet puis: python -m pip install pytest\n"
+            "- OU lancez: sentra test --use-local"
+        )
+    # Montre la sortie pour aider au debug
+    if output.strip():
+        click.echo(output.rstrip(), err=True)
+    raise click.ClickException(f"Tests failed (exit code {proc.returncode}).")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,3 @@
+﻿v0.1.1 — Packaging fix
+- Expose la commande 'sentra'
+- Extra 'dev' ajouté

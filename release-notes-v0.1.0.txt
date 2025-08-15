@@ -1,0 +1,13 @@
+﻿v0.1.0 — Initial release
+
+Changements :
+- CLI minimal : sentra status, sentra init, sentra model fetch, sentra test.
+- Tests unitaires et pre-commit (black, ruff) configurés.
+- Workflow GitHub Actions CI (lint + tests).
+- README, examples et packaging editable.
+
+Utilisation rapide :
+- Installer en dev : python -m pip install -e .
+- Exemples : sentra model fetch dummy --url file:///C:/path/to/file
+
+Auteur : Julien
