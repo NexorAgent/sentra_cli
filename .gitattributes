@@ -1,0 +1,7 @@
+﻿# Normalize line endings and hint encoding
+* text=auto eol=lf
+
+# Ensure config files are treated as text - prefer UTF-8
+*.cfg text
+*.toml text
+*.py text
