@@ -1,1 +1,6 @@
-﻿pytest
+﻿ruff
+black
+pytest
+pre-commit
+click
+
