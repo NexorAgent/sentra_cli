@@ -1,10 +1,18 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0", "wheel", "build"]
 build-backend = "setuptools.build_meta"
+
 [project]
 name = "sentra_cli"
 version = "0.0.1"
 description = "Projet sentra_cli"
+authors = [{ name = "Julien" }]
+
+[project.scripts]
+sentra = "sentra_cli.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.black]
 line-length = 100
