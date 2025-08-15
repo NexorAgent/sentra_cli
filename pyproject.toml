@@ -1,18 +1,28 @@
-﻿[build-system]
-requires = ["setuptools>=61.0", "wheel", "build"]
+[build-system]
+requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "sentra_cli"
 version = "0.1.1"
-description = "Projet sentra_cli"
+description = "Sentra CLI - automation helpers for SENTRA_CORE_MEM"
+readme = "README.md"
+requires-python = ">=3.12"
 authors = [{ name = "Julien" }]
+dependencies = ["click>=8.1"]
 
 [project.scripts]
 sentra = "sentra_cli.cli:main"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "black",
+  "ruff",
+  "pre-commit",
+  "build",
+  "twine"
+]
 
 [tool.black]
 line-length = 100
@@ -24,15 +34,5 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E","F","I","B","UP"]
 
-
-[project.optional-dependencies]
-dev = [
-  "pytest",
-  "black",
-  "ruff",
-  "pre-commit",
-  "click",
-  "build",
-  "twine"
-]
-
+[tool.setuptools.packages.find]
+where = ["src"]
