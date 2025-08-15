@@ -1,3 +1,9 @@
+﻿<!-- Badges -->
+![CI](https://github.com/NexorAgent/sentra_cli/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![PyPI (placeholder)](https://img.shields.io/pypi/v/sentra-cli?label=PyPI)
+
 # pytest cache directory #
 
 This directory contains data from the pytest's cache plugin,
@@ -8,8 +14,8 @@ which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
 See [the docs](https://docs.pytest.org/en/stable/how-to/cache.html) for more information.
 # sentra_cli
 
-**Sentra CLI** — Outils d'automatisation légers pour projets (IA / dev locaux / R&D).  
-Un utilitaire minimaliste pour : scaffold de projet, gestion simple de modèles (download/cache), commandes de tests et checks rapides.
+**Sentra CLI** â€” Outils d'automatisation lÃ©gers pour projets (IA / dev locaux / R&D).  
+Un utilitaire minimaliste pour : scaffold de projet, gestion simple de modÃ¨les (download/cache), commandes de tests et checks rapides.
 
 ---
 
@@ -17,88 +23,88 @@ Un utilitaire minimaliste pour : scaffold de projet, gestion simple de modèles 
 - [But du projet](#but-du-projet)  
 - [Quickstart](#quickstart)  
 - [Usage (notice)](#usage-notice)  
-- [Commandes détaillées](#commandes-détaillées)  
-- [Développement & tests](#développement--tests)  
+- [Commandes dÃ©taillÃ©es](#commandes-dÃ©taillÃ©es)  
+- [DÃ©veloppement & tests](#dÃ©veloppement--tests)  
 - [CI / Packaging](#ci--packaging)  
-- [Dépannage rapide](#dépannage-rapide)  
+- [DÃ©pannage rapide](#dÃ©pannage-rapide)  
 - [Roadmap / Extensions possibles](#roadmap--extensions-possibles)  
 - [Licence & Contact](#licence--contact)
 
 ---
 
 ## But du projet
-`sentra_cli` est un **outil utilitaire** pensé pour te faire gagner du temps sur les tâches récurrentes :
+`sentra_cli` est un **outil utilitaire** pensÃ© pour te faire gagner du temps sur les tÃ¢ches rÃ©currentes :
 - scaffolder une arborescence projet (data/models/notebooks/logs),  
-- télécharger et mettre en cache des "modèles" ou fichiers (http(s) ou file://),  
-- fournir des commandes utilitaires (status, test) simples à intégrer dans des scripts ou CI.
+- tÃ©lÃ©charger et mettre en cache des "modÃ¨les" ou fichiers (http(s) ou file://),  
+- fournir des commandes utilitaires (status, test) simples Ã  intÃ©grer dans des scripts ou CI.
 
-Cible : développeurs R&D/IA, devs BIM souhaitant automatiser des étapes locales.
+Cible : dÃ©veloppeurs R&D/IA, devs BIM souhaitant automatiser des Ã©tapes locales.
 
 ---
 
 ## Quickstart
 
-**Pré-requi­s** : Python 3.12, Git.
+**PrÃ©-requiÂ­s** : Python 3.12, Git.
 
 1. Cloner le repo :
 ```powershell
 git clone https://github.com/NexorAgent/sentra_cli.git
 cd sentra_cli
 
-2. Créer et activer le virtualenv (Windows PowerShell) :
+2. CrÃ©er et activer le virtualenv (Windows PowerShell) :
 
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
-3.Installer le package en editable + dépendances dev :
+3.Installer le package en editable + dÃ©pendances dev :
 
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -e .
 python -m pip install -r requirements-dev.txt
 
-4. Vérifier les hooks et tests
+4. VÃ©rifier les hooks et tests
 
 pre-commit install
 pre-commit run --all-files
 pytest -q
 
-Usage — notice rapide
+Usage â€” notice rapide
 
-Exemple : venv activé et package installé en editable (pip install -e .).
-Commande générale
+Exemple : venv activÃ© et package installÃ© en editable (pip install -e .).
+Commande gÃ©nÃ©rale
 
 sentra <command> [options]
 
-Si sentra n’est pas trouvée (Windows), utilise :
+Si sentra nâ€™est pas trouvÃ©e (Windows), utilise :
 
 python -m sentra_cli.cli <command> [options]
 
-Commandes détaillées (notice)
+Commandes dÃ©taillÃ©es (notice)
 sentra status
 
-Affiche un état basique. Utile pour checks rapides (à étendre).
+Affiche un Ã©tat basique. Utile pour checks rapides (Ã  Ã©tendre).
 sentra status
 
 # => Status: OK - implement checks
 
 sentra init [--force]
-Scaffold d’un squelette projet :
-crée data/, models/, notebooks/, logs/
+Scaffold dâ€™un squelette projet :
+crÃ©e data/, models/, notebooks/, logs/
 ajoute .gitkeep dans chaque dossier.
---force : supprime puis recrée les dossiers si existants.
+--force : supprime puis recrÃ©e les dossiers si existants.
 
 sentra init
 sentra init --force
 
 sentra model fetch <name> --url <url>
 
-Télécharge un fichier « modèle » et le stocke dans models/ du repo (racine détectée automatiquement).
+TÃ©lÃ©charge un fichier Â« modÃ¨le Â» et le stocke dans models/ du repo (racine dÃ©tectÃ©e automatiquement).
 
 url accepte : http://, https://, file://
 
 Si --url absent, le CLI peut utiliser un mapping interne (configurable dans le code).
 
-L’extension du fichier est déduite depuis l’URL ou le chemin source.
+Lâ€™extension du fichier est dÃ©duite depuis lâ€™URL ou le chemin source.
 
 Exemples (Windows) :
 # depuis fichier local (formel)
@@ -110,13 +116,13 @@ sentra model fetch dummy --url file://C:\chemin\vers\mon\fichier.txt
 # depuis HTTP
 sentra model fetch example-small --url https://example.com/models/example-small.bin
 Remarques :
-Les file:// sont normalisés pour Windows et POSIX.
-Pour de gros fichiers, pense à ajouter contrôle checksum et extraction d’archives (feature possible).
+Les file:// sont normalisÃ©s pour Windows et POSIX.
+Pour de gros fichiers, pense Ã  ajouter contrÃ´le checksum et extraction dâ€™archives (feature possible).
 
 sentra test
-Lance pytest (le CLI ajoute src au PYTHONPATH si nécessaire).
+Lance pytest (le CLI ajoute src au PYTHONPATH si nÃ©cessaire).
 
-Développement & tests
+DÃ©veloppement & tests
 Style & hooks
 
 Le repo utilise pre-commit avec black et ruff.
@@ -144,32 +150,32 @@ Le workflow GitHub Actions (fichier .github/workflows/ci.yml) doit :
 3.pip install -e . (editable) + installer deps dev (requirements-dev.txt),
 4.lancer ruff check ., black --check ., pytest -q.
 
-Ceci garantit que la CI reproduit l’environnement dev et évite les hacks PYTHONPATH.
+Ceci garantit que la CI reproduit lâ€™environnement dev et Ã©vite les hacks PYTHONPATH.
 
-Dépannage rapide
+DÃ©pannage rapide
 
 .configparser.MissingSectionHeaderError / BOM
-Vérifie l’encodage des fichiers de config (setup.cfg / pyproject.toml). Le BOM (EF BB BF) bloquera configparser. Réécris en UTF-8 sans BOM.
+VÃ©rifie lâ€™encodage des fichiers de config (setup.cfg / pyproject.toml). Le BOM (EF BB BF) bloquera configparser. RÃ©Ã©cris en UTF-8 sans BOM.
 
-.sentra non trouvé sur Windows
-Active le venv ou exécute python -m sentra_cli.cli <cmd>. Tu peux créer un shim .venv\Scripts\sentra.cmd pour développement local.
+.sentra non trouvÃ© sur Windows
+Active le venv ou exÃ©cute python -m sentra_cli.cli <cmd>. Tu peux crÃ©er un shim .venv\Scripts\sentra.cmd pour dÃ©veloppement local.
 .ModuleNotFoundError: No module named 'click'
 Installer click : python -m pip install click ou via requirements-dev.txt.
 .Tests ne trouvent pas sentra_cli
-Soit installer le package en editable (pip install -e .), soit ajouter PYTHONPATH=src dans l’environnement de test.
+Soit installer le package en editable (pip install -e .), soit ajouter PYTHONPATH=src dans lâ€™environnement de test.
 .Pre-commit fail / black error
-Exécute localement pre-commit run --all-files, laisse black/ruff modifier et commit à nouveau (git add -A, git commit).
+ExÃ©cute localement pre-commit run --all-files, laisse black/ruff modifier et commit Ã  nouveau (git add -A, git commit).
 
 Roadmap / Extensions possibles
 
-Idées à prioriser :
+IdÃ©es Ã  prioriser :
 
-.Intégration Hugging Face Hub (téléchargement + caching + token management).
-.Gestion d’archives (.zip, .tar.gz) : téléchargement → extraction automatique.
-.Vérification checksum / signatures des fichiers téléchargés.
+.IntÃ©gration Hugging Face Hub (tÃ©lÃ©chargement + caching + token management).
+.Gestion dâ€™archives (.zip, .tar.gz) : tÃ©lÃ©chargement â†’ extraction automatique.
+.VÃ©rification checksum / signatures des fichiers tÃ©lÃ©chargÃ©s.
 .Commandes additionnelles : sentra model list, sentra model remove, sentra backup.
 
 Licence & Contact
 
 Licence : MIT (ajoute un LICENSE si besoin).
-Mainteneur local : Julien — ajoute mail ou lien GitHub si tu veux partager.
+Mainteneur local : Julien â€” ajoute mail ou lien GitHub si tu veux partager.
