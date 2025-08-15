@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sentra_cli"
-version = "0.1.1"
+version = "0.1.3"
 description = "Sentra CLI - automation helpers for SENTRA_CORE_MEM"
 readme = "README.md"
 requires-python = ">=3.12"
